@@ -67,8 +67,10 @@ def get_review_data(teacher_id,increment=200):
 
 if __name__ == "__main__":
 	teacher_overview_df = pd.read_csv("data/output/teachers.csv")
-	num_segments = len(teacher_overview_df)//2
-	print(f"{len(teacher_overview_df)} teachers split up into {num_segments} chunks")
+	teacher_overview_df = teacher_overview_df[teacher_overview_df['numRatings'] > 0]
+	chunk_size = 100
+	num_segments = len(teacher_overview_df)//chunk_size
+	print(f"{len(teacher_overview_df)} teachers split up into {num_segments} chunks of size {chunk_size}")
 	i=0
 	for chunk in tqdm(np.array_split(teacher_overview_df,num_segments)):	
 		print(f"Chunk {i}")
@@ -78,7 +80,7 @@ if __name__ == "__main__":
         	# Flatten the list of lists into a single list
 		flattened = [element for list_ in review_data for element in list_]
 		review_df = pd.DataFrame.from_records(flattened)
-		review_df = review_df.merge(chunk[["id", "firstName", "lastName","department","schoolName"]],
+		review_df = review_df.merge(teacher_overview_df[["id", "firstName", "lastName","department","schoolName"]],
                                 how="left",
                                 left_on="teacherId",
                                 right_on="id")
@@ -110,6 +112,6 @@ if __name__ == "__main__":
 		if not i%100:
 			print(f"{i}! Saving CSV for safety")
 			review_df.to_csv(f"data/output/{i:06d}-reviews.csv",index=False)
-		review_df.to_pickle("data/output/reviews/{i:06d}-reviews.pkl")
+		review_df.to_pickle(f"data/output/reviews/{i:06d}-reviews.pkl")
 		i +=1
 	print("Finished scraping")
