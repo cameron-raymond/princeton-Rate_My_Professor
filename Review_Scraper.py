@@ -7,8 +7,6 @@
 #     
 # Output: For each teacher, all their reviews
 
-# In[1]:
-
 
 # Data manipulation libraries
 from tqdm import tqdm
@@ -21,7 +19,6 @@ import requests
 tqdm.pandas()
 
 print("Initializing Scraper")
-# In[11]:
 
 
 from time import sleep
@@ -67,55 +64,50 @@ def get_review_data(teacher_id,increment=200):
 #         print(cursor,has_next_page,len(review_data))
     return [{**x['node'], 'teacherId': teacher_id} for x in review_data if 'node' in x]
 
-
-# In[12]:
-
-
-teacher_overview_df = pd.read_csv("data/output/teachers.csv")
-num_segments = len(teacher_overview_df)//2
-print(f"{len(teacher_overview_df)} teachers split up into {num_segments} chunks")
-i=1
-for chunk in tqdm(np.array_split(teacher_overview_df,num_segments)):	
-	print(f"Chunk {i}")
-	# Scrape each page
-	review_data = chunk.apply(lambda x : get_review_data(x['id']),
-                                                 axis=1).tolist()
-	# Flatten the list of lists into a single list
-	flattened = [element for list_ in review_data for element in list_]
-	review_df = pd.DataFrame.from_records(flattened)
-	review_df = review_df.merge(chunk[["id", "firstName", "lastName","department","schoolName"]],
-                            how="left",
-                            left_on="teacherId",
-                            right_on="id")
-	review_df.drop(['__typename','adminReviewedAt','id_y','flagStatus'],axis=1,inplace=True)
-	review_df.rename({'id_x': 'reviewId'},axis=1,inplace=True)
-	review_df = review_df[["firstName",
-                       "lastName",
-                       'teacherId',
-                       "department",
-                       "schoolName",
-                       'class',
-                       'date',
-                       'reviewId',
-                       'clarityRating',
-                       'difficultyRating',
-                       'helpfulRating',
-                       'wouldTakeAgain',
-                       'textbookUse',
-                       'comment',
-                       'ratingTags',
-                       'teacherNote',
-                       'grade',
-                       'attendanceMandatory',
-                       'isForCredit', 
-                       'isForOnlineClass',
-                       'thumbs', 
-                       'thumbsDownTotal', 
-                       'thumbsUpTotal']]
-	review_df.to_csv(f"data/output/{i}-reviews.csv",index=False)
-	i +=1 
-
-# In[ ]:
+if __name__ == "__main__":
+    teacher_overview_df = pd.read_csv("data/output/teachers.csv")
+    num_segments = len(teacher_overview_df)//2
+    print(f"{len(teacher_overview_df)} teachers split up into {num_segments} chunks")
+    i=1
+    for chunk in tqdm(np.array_split(teacher_overview_df,num_segments)):	
+        print(f"Chunk {i}")
+        # Scrape each page
+        review_data = chunk.apply(lambda x : get_review_data(x['id']),
+                                    axis=1).tolist()
+        # Flatten the list of lists into a single list
+        flattened = [element for list_ in review_data for element in list_]
+        review_df = pd.DataFrame.from_records(flattened)
+        review_df = review_df.merge(chunk[["id", "firstName", "lastName","department","schoolName"]],
+                                how="left",
+                                left_on="teacherId",
+                                right_on="id")
+        review_df.drop(['__typename','adminReviewedAt','id_y','flagStatus'],axis=1,inplace=True)
+        review_df.rename({'id_x': 'reviewId'},axis=1,inplace=True)
+        review_df = review_df[["firstName",
+                        "lastName",
+                        'teacherId',
+                        "department",
+                        "schoolName",
+                        'class',
+                        'date',
+                        'reviewId',
+                        'clarityRating',
+                        'difficultyRating',
+                        'helpfulRating',
+                        'wouldTakeAgain',
+                        'textbookUse',
+                        'comment',
+                        'ratingTags',
+                        'teacherNote',
+                        'grade',
+                        'attendanceMandatory',
+                        'isForCredit', 
+                        'isForOnlineClass',
+                        'thumbs', 
+                        'thumbsDownTotal', 
+                        'thumbsUpTotal']]
+        review_df.to_csv(f"data/output/{i}-reviews.csv",index=False)
+        i +=1 
 
 
 

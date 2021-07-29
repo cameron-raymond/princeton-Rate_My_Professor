@@ -13,7 +13,7 @@
 
 
 # Data manipulation libraries
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 # Common webscraping libaries
@@ -70,7 +70,7 @@ def get_teacher_data(school_id="U2Nob29sLTE0NjY=",increment=200):
     return [x['node'] for x in teacher_data if 'node' in x]
 
 
-# In[3]:
+# In[ ]:
 
 
 school_df = pd.read_csv("data/input/Schools CSV.csv")
@@ -87,13 +87,13 @@ teacher_df.drop(['__typename','isSaved','school'],axis=1,inplace=True)
 teacher_df
 
 
-# In[6]:
+# In[ ]:
 
 
 teacher_df['numRatings'].median()
 
 
-# In[7]:
+# In[ ]:
 
 
 teacher_df = teacher_df[["firstName",
