@@ -10,6 +10,7 @@
 
 # Data manipulation libraries
 from tqdm import tqdm
+from glob import glob
 import pandas as pd
 import numpy as np
 # Common webscraping libaries
@@ -49,10 +50,15 @@ def get_review_data(teacher_id,increment=200):
 	while has_next_page:
 		sleep(1)
 		r = requests.post(url,json=query,headers = headers)
-		json_data = json.loads(r.text)['data']['node']['ratings']
 		if not r.status_code == 200:
 			print(r)
 			break
+		json_data = json.loads(r.text)
+		if "errors" in json_data:
+			es = [e['message'] for e in json_data['errors']]
+			print(" & ".join(es))
+			break
+		json_data = json_data['data']['node']['ratings']
 		if 'edges' in json_data:
 			teacher_page = json_data['edges']
 			review_data += teacher_page
@@ -71,8 +77,12 @@ if __name__ == "__main__":
 	chunk_size = 100
 	num_segments = len(teacher_overview_df)//chunk_size
 	print(f"{len(teacher_overview_df)} teachers split up into {num_segments} chunks of size {chunk_size}")
-	i=0
-	for chunk in tqdm(np.array_split(teacher_overview_df,num_segments)):	
+	existing_chunks = sorted(glob("data/output/reviews/*"))
+	last_chunk = int(existing_chunks[-1].split("/")[-1].split("-")[0])
+	chunks = np.array_split(teacher_overview_df,num_segments)[last_chunk+1:]
+	print(f"{last_chunk} chunks already collected, {len(chunks)} remaining")
+	i=last_chunk+1
+	for chunk in tqdm(chunks):	
 		print(f"Chunk {i}")
         	# Scrape each page
 		review_data = chunk.apply(lambda x : get_review_data(x['id']),
